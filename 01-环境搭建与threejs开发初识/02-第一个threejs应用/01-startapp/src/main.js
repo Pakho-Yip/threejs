@@ -1,7 +1,9 @@
 // 导入threejs
 import * as THREE from "three";
+// 导入轨道控制器
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
-// 创建场景'
+// 创建场景
 const scene = new THREE.Scene();
 
 // 创建相机
@@ -29,14 +31,30 @@ scene.add(cube);
 
 // 设置相机位置
 camera.position.z = 5;
+camera.position.y = 2;
+camera.position.x = 2;
 camera.lookAt(0, 0, 0);
+
+// 添加世界坐标辅助器
+const axesHelper = new THREE.AxesHelper(5);
+scene.add(axesHelper);
+
+// 添加轨道控制器
+const controls = new OrbitControls(camera, document.body);
+// 设置带阻尼的惯性
+controls.enableDamping = true;
+// 设置阻尼系数
+controls.dampingFactor = 0.05;
+// 设置旋转速度
+controls.autoRotate = true;
 
 // 渲染函数
 function animation() {
+  controls.update();
   requestAnimationFrame(animation);
   // 旋转
-  cube.rotation.x += 0.01;
-  cube.rotation.y += 0.01;
+  // cube.rotation.x += 0.01;
+  // cube.rotation.y += 0.01;
   // 渲染
   renderer.render(scene, camera);
 }
