@@ -23,18 +23,11 @@ document.body.appendChild(renderer.domElement);
 const geometry = new THREE.BoxGeometry(1, 1, 1);
 // 创建材质
 const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const parentMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
 // 创建网格
-let parentCube = new THREE.Mesh(geometry, parentMaterial);
 const cube = new THREE.Mesh(geometry, material);
-parentCube.add(cube);
-parentCube.position.set(-3, 0, 0);
-
-// cube.position.x = 2;
-cube.position.set(3, 0, 0);
 
 // 将网格添加到场景中
-scene.add(parentCube);
+scene.add(cube);
 
 // 设置相机位置
 camera.position.z = 5;
@@ -53,7 +46,7 @@ controls.enableDamping = true;
 // 设置阻尼系数
 controls.dampingFactor = 0.05;
 // 设置旋转速度
-// controls.autoRotate = true;
+controls.autoRotate = true;
 
 // 渲染函数
 function animation() {
