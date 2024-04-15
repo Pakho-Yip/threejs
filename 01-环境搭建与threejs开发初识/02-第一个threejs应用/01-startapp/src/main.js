@@ -53,7 +53,8 @@ const axesHelper = new THREE.AxesHelper(5);
 scene.add(axesHelper);
 
 // 添加轨道控制器
-const controls = new OrbitControls(camera, document.body);
+// const controls = new OrbitControls(camera, document.body);
+const controls = new OrbitControls(camera, renderer.domElement);
 // 设置带阻尼的惯性
 controls.enableDamping = true;
 // 设置阻尼系数
@@ -72,3 +73,39 @@ function animation() {
   renderer.render(scene, camera);
 }
 animation();
+
+// 监听窗口变化
+window.addEventListener("resize", () => {
+  // 重置渲染器宽高比
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  // 重置相机宽高比
+  renderer.aspect = window.innerWidth / window.innerHeight;
+  // 更新相机投影矩阵
+  camera.updateProjectionMatrix();
+});
+
+var btn = document.createElement("button");
+btn.innerHTML = "点击全屏";
+btn.style.position = "absolute";
+btn.style.top = "10px";
+btn.style.left = "10px";
+btn.style.zIndex = "999";
+btn.onclick = function () {
+  // 全屏
+  document.body.requestFullscreen();
+};
+document.body.appendChild(btn);
+
+// 退出全屏的按钮
+var exitBtn = document.createElement("button");
+exitBtn.innerHTML = "退出全屏";
+exitBtn.style.position = "absolute";
+exitBtn.style.top = "10px";
+exitBtn.style.left = "100px";
+exitBtn.style.zIndex = "999";
+exitBtn.onclick = function () {
+  // 退出全屏
+  document.exitFullscreen();
+  console.log("退出全屏");
+};
+document.body.appendChild(exitBtn);
