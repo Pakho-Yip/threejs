@@ -29,9 +29,15 @@ let parentCube = new THREE.Mesh(geometry, parentMaterial);
 const cube = new THREE.Mesh(geometry, material);
 parentCube.add(cube);
 parentCube.position.set(-3, 0, 0);
+// parentCube.scale.set(2, 2, 2);
+parentCube.rotation.x = Math.PI / 4;
 
 // cube.position.x = 2;
 cube.position.set(3, 0, 0);
+// 设置立方体的放大
+// cube.scale.set(2, 2, 2);
+// 绕着x轴旋转
+cube.rotation.x = Math.PI / 4;
 
 // 将网格添加到场景中
 scene.add(parentCube);
