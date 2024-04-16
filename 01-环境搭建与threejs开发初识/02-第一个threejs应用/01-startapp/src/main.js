@@ -2,6 +2,8 @@
 import * as THREE from "three";
 // 导入轨道控制器
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+// 导入lil.gui
+import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
 
 // 创建场景
 const scene = new THREE.Scene();
@@ -24,6 +26,8 @@ const geometry = new THREE.BoxGeometry(1, 1, 1);
 // 创建材质
 const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
 const parentMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+// 设置父元素材质为线框模式
+parentMaterial.wireframe = true;
 // 创建网格
 let parentCube = new THREE.Mesh(geometry, parentMaterial);
 const cube = new THREE.Mesh(geometry, material);
@@ -84,7 +88,7 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
 });
 
-var btn = document.createElement("button");
+/* var btn = document.createElement("button");
 btn.innerHTML = "点击全屏";
 btn.style.position = "absolute";
 btn.style.top = "10px";
@@ -109,3 +113,56 @@ exitBtn.onclick = function () {
   console.log("退出全屏");
 };
 document.body.appendChild(exitBtn);
+ */
+
+let eventObj = {
+  fullScreen: function () {
+    document.body.requestFullscreen();
+    console.log("全屏");
+  },
+  exitFullScreen: function () {
+    document.exitFullscreen();
+    console.log("退出全屏");
+  },
+};
+
+// 创建GUI
+const gui = new GUI();
+// 添加按钮
+gui.add(eventObj, "fullScreen").name("全屏");
+gui.add(eventObj, "exitFullScreen").name("退出全屏");
+// 控制立方体的位置
+// gui.add(cube.position, "x", -5, 5).name("立方体x轴位置");
+let folder = gui.addFolder("立方体位置");
+folder
+  .add(cube.position, "x")
+  .min(-10)
+  .max(10)
+  .step(1)
+  .name("立方体x轴位置")
+  .onChange((val) => {
+    console.log("立方体x轴位置", val);
+  });
+folder
+  .add(cube.position, "y")
+  .min(-10)
+  .max(10)
+  .step(1)
+  .name("立方体y轴位置")
+  .onFinishChange((val) => {
+    console.log("立方体y轴位置", val);
+  });
+folder.add(cube.position, "z").min(-10).max(10).step(1).name("立方体z轴位置");
+
+gui.add(parentMaterial, "wireframe").name("父元素线框模式");
+
+let colorParams = {
+  cubeColor: "#00ff00",
+};
+
+gui
+  .addColor(colorParams, "cubeColor")
+  .name("立方体颜色")
+  .onChange((val) => {
+    cube.material.color.set(val);
+  });
