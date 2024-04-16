@@ -1,6 +1,5 @@
 // 导入threejs
 import * as THREE from "three";
-import { DoubleSide } from "three";
 // 导入轨道控制器
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 // 导入lil.gui
@@ -22,60 +21,30 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// // 创建几何体
-// const geometry = new THREE.BoxGeometry(1, 1, 1);
-// // 创建材质
-// const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-// const parentMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-// // 设置父元素材质为线框模式
-// parentMaterial.wireframe = true;
-// // 创建网格
-// let parentCube = new THREE.Mesh(geometry, parentMaterial);
-// const cube = new THREE.Mesh(geometry, material);
-// console.log(geometry);
-// parentCube.add(cube);
-// parentCube.position.set(-3, 0, 0);
-// parentCube.rotation.x = Math.PI / 4;
-
-// // cube.position.x = 2;
-// cube.position.set(3, 0, 0);
-// // 设置立方体的放大
-// // cube.scale.set(2, 2, 2);
-// // 绕着x轴旋转
-// cube.rotation.x = Math.PI / 4;
-
-// // 将网格添加到场景中
-// scene.add(parentCube);
-
 // 创建几何体
-const geometry = new THREE.BufferGeometry();
-// 创建顶点数据，顶点是有序的，每三个为一个顶点，逆时针为正面
-// const vertices = new Float32Array([
-//   -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, -1.0, 0.0, 1.0, 1.0,
-//   0.0, -1.0, 1.0, 0.0,
-// ]);
-// // 创建顶点属性
-// geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+const geometry = new THREE.BoxGeometry(1, 1, 1);
+// 创建材质
+const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+const parentMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+// 设置父元素材质为线框模式
+parentMaterial.wireframe = true;
+// 创建网格
+let parentCube = new THREE.Mesh(geometry, parentMaterial);
+const cube = new THREE.Mesh(geometry, material);
+parentCube.add(cube);
+parentCube.position.set(-3, 0, 0);
+// parentCube.scale.set(2, 2, 2);
+parentCube.rotation.x = Math.PI / 4;
 
-// 使用索引绘制
-const vertices = new Float32Array([
-  -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0,
-]);
-// 创建顶点属性
-geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
-// 创建索引
-const indices = new Uint16Array([0, 1, 2, 2, 3, 0]);
-// 创建索引属性
-geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+// cube.position.x = 2;
+cube.position.set(3, 0, 0);
+// 设置立方体的放大
+// cube.scale.set(2, 2, 2);
+// 绕着x轴旋转
+cube.rotation.x = Math.PI / 4;
 
-console.log(geometry);
-const material = new THREE.MeshBasicMaterial({
-  color: 0x00ff00,
-  // side: THREE.DoubleSide,
-  wireframe: true,
-});
-const plane = new THREE.Mesh(geometry, material);
-scene.add(plane);
+// 将网格添加到场景中
+scene.add(parentCube);
 
 // 设置相机位置
 camera.position.z = 5;
@@ -119,6 +88,33 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
 });
 
+/* var btn = document.createElement("button");
+btn.innerHTML = "点击全屏";
+btn.style.position = "absolute";
+btn.style.top = "10px";
+btn.style.left = "10px";
+btn.style.zIndex = "999";
+btn.onclick = function () {
+  // 全屏
+  document.body.requestFullscreen();
+};
+document.body.appendChild(btn);
+
+// 退出全屏的按钮
+var exitBtn = document.createElement("button");
+exitBtn.innerHTML = "退出全屏";
+exitBtn.style.position = "absolute";
+exitBtn.style.top = "10px";
+exitBtn.style.left = "100px";
+exitBtn.style.zIndex = "999";
+exitBtn.onclick = function () {
+  // 退出全屏
+  document.exitFullscreen();
+  console.log("退出全屏");
+};
+document.body.appendChild(exitBtn);
+ */
+
 let eventObj = {
   fullScreen: function () {
     document.body.requestFullscreen();
@@ -137,3 +133,36 @@ gui.add(eventObj, "fullScreen").name("全屏");
 gui.add(eventObj, "exitFullScreen").name("退出全屏");
 // 控制立方体的位置
 // gui.add(cube.position, "x", -5, 5).name("立方体x轴位置");
+let folder = gui.addFolder("立方体位置");
+folder
+  .add(cube.position, "x")
+  .min(-10)
+  .max(10)
+  .step(1)
+  .name("立方体x轴位置")
+  .onChange((val) => {
+    console.log("立方体x轴位置", val);
+  });
+folder
+  .add(cube.position, "y")
+  .min(-10)
+  .max(10)
+  .step(1)
+  .name("立方体y轴位置")
+  .onFinishChange((val) => {
+    console.log("立方体y轴位置", val);
+  });
+folder.add(cube.position, "z").min(-10).max(10).step(1).name("立方体z轴位置");
+
+gui.add(parentMaterial, "wireframe").name("父元素线框模式");
+
+let colorParams = {
+  cubeColor: "#00ff00",
+};
+
+gui
+  .addColor(colorParams, "cubeColor")
+  .name("立方体颜色")
+  .onChange((val) => {
+    cube.material.color.set(val);
+  });
