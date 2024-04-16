@@ -22,30 +22,30 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// 创建几何体
-const cubegeometry = new THREE.BoxGeometry(1, 1, 1);
-// 创建材质
-const cubematerial0 = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-const cubematerial1 = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-const cubematerial2 = new THREE.MeshBasicMaterial({ color: 0x0000ff });
-const cubematerial3 = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-const cubematerial4 = new THREE.MeshBasicMaterial({ color: 0x00ffff });
-const cubematerial5 = new THREE.MeshBasicMaterial({ color: 0x00fff0 });
+// // 创建几何体
+// const geometry = new THREE.BoxGeometry(1, 1, 1);
+// // 创建材质
+// const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+// const parentMaterial = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+// // 设置父元素材质为线框模式
+// parentMaterial.wireframe = true;
+// // 创建网格
+// let parentCube = new THREE.Mesh(geometry, parentMaterial);
+// const cube = new THREE.Mesh(geometry, material);
+// console.log(geometry);
+// parentCube.add(cube);
+// parentCube.position.set(-3, 0, 0);
+// parentCube.rotation.x = Math.PI / 4;
 
-// 创建网格
-const cube = new THREE.Mesh(cubegeometry, [
-  cubematerial0,
-  cubematerial1,
-  cubematerial2,
-  cubematerial3,
-  cubematerial4,
-  cubematerial5,
-]);
+// // cube.position.x = 2;
+// cube.position.set(3, 0, 0);
+// // 设置立方体的放大
+// // cube.scale.set(2, 2, 2);
+// // 绕着x轴旋转
+// cube.rotation.x = Math.PI / 4;
 
-cube.position.x = 2;
-
-// 将网格添加到场景中
-scene.add(cube);
+// // 将网格添加到场景中
+// scene.add(parentCube);
 
 // 创建几何体
 const geometry = new THREE.BufferGeometry();
@@ -68,20 +68,13 @@ const indices = new Uint16Array([0, 1, 2, 2, 3, 0]);
 // 创建索引属性
 geometry.setIndex(new THREE.BufferAttribute(indices, 1));
 
-// 设置2个顶点组，形成2个材质
-geometry.addGroup(0, 3, 0);
-geometry.addGroup(3, 3, 1);
-
 console.log(geometry);
 const material = new THREE.MeshBasicMaterial({
   color: 0x00ff00,
   // side: THREE.DoubleSide,
   wireframe: true,
 });
-const material1 = new THREE.MeshBasicMaterial({
-  color: 0xff0000,
-});
-const plane = new THREE.Mesh(geometry, [material, material1]);
+const plane = new THREE.Mesh(geometry, material);
 scene.add(plane);
 
 // 设置相机位置
