@@ -75,6 +75,11 @@ let textureLoader = new THREE.TextureLoader();
 let texture = textureLoader.load(
   "./texture/watercover/CityNewYork002_COL_VAR1_1K.png"
 );
+console.log(texture);
+texture.colorSpace = THREE.SRGBColorSpace;
+// texture.colorSpace = THREE.LinearSRGBColorSpace;
+// texture.colorSpace = THREE.NoColorSpace;
+
 // 加载ao贴图
 let aoMap = textureLoader.load("./texture/watercover/CityNewYork002_AO_1K.jpg");
 
@@ -124,3 +129,11 @@ let plane = new THREE.Mesh(planeGeometry, planeMaterial);
 scene.add(plane);
 
 gui.add(planeMaterial, "aoMapIntensity").min(0).max(1).name("ao强度");
+gui
+  .add(texture, "colorSpace", {
+    sRGB: THREE.SRGBColorSpace,
+    Linear: THREE.LinearSRGBColorSpace,
+  })
+  .onChange(() => {
+    texture.needsUpdate = true;
+  });
