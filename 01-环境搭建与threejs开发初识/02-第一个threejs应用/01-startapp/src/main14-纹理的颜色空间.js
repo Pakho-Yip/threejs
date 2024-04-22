@@ -69,16 +69,71 @@ window.addEventListener("resize", () => {
 // 创建GUI
 const gui = new GUI();
 
-// 创建长方体
-const boxGeometry = new THREE.BoxGeometry(1, 1, 100);
-const boxMaterial = new THREE.MeshBasicMaterial({
-  color: 0x00ff00,
-});
-const box = new THREE.Mesh(boxGeometry, boxMaterial);
-scene.add(box);
+// 创建纹理加载器
+let textureLoader = new THREE.TextureLoader();
+// 加载纹理
+let texture = textureLoader.load(
+  "./texture/watercover/CityNewYork002_COL_VAR1_1K.png"
+);
+console.log(texture);
+texture.colorSpace = THREE.SRGBColorSpace;
+// texture.colorSpace = THREE.LinearSRGBColorSpace;
+// texture.colorSpace = THREE.NoColorSpace;
 
-// 创建场景fog
-scene.fog = new THREE.Fog(0x999999, 0.1, 50);
-// 创建场景指数fog
-// scene.fog = new THREE.FogExp2(0x999999, 0.1);
-scene.background = new THREE.Color(0x999999);
+// 加载ao贴图
+let aoMap = textureLoader.load("./texture/watercover/CityNewYork002_AO_1K.jpg");
+
+// 透明度贴图
+let alphaMap = textureLoader.load("./texture/door/height.jpg");
+
+// 光照贴图
+let lightMap = textureLoader.load("./texture/colors.png");
+
+// 高光贴图
+let specularMap = textureLoader.load(
+  "./texture/watercover/CityNewYork002_GLOSS_1K.jpg"
+);
+
+// rgbeLoader 加载hdr贴图
+let rgbeLoader = new RGBELoader();
+rgbeLoader.load("./texture/Alex_Hart-Nature_Lab_Bones_2k.hdr", (envMap) => {
+  // 设置球形贴图
+  envMap.mapping = THREE.EquirectangularReflectionMapping;
+  // 设置环境贴图
+  scene.background = envMap;
+  // 设置环境贴图
+  scene.environment = envMap;
+  // 设置plane的环境贴图
+  planeMaterial.envMap = envMap;
+});
+
+let planeGeometry = new THREE.PlaneGeometry(1, 1);
+let planeMaterial = new THREE.MeshBasicMaterial({
+  color: 0xffffff,
+  map: texture,
+  // 允许透明
+  transparent: true,
+  // 设置ao贴图
+  aoMap: aoMap,
+  aoMapIntensity: 1,
+  // 透明度贴图
+  // alphaMap: alphaMap,
+  // 设置光照贴图
+  // lightMap: lightMap,
+  // 设置高光贴图
+  specularMap: specularMap,
+  reflectivity: 0.5,
+});
+// planeMaterial.map = texture;
+let plane = new THREE.Mesh(planeGeometry, planeMaterial);
+scene.add(plane);
+
+gui.add(planeMaterial, "aoMapIntensity").min(0).max(1).name("ao强度");
+gui
+  .add(texture, "colorSpace", {
+    sRGB: THREE.SRGBColorSpace,
+    Linear: THREE.LinearSRGBColorSpace,
+  })
+  .onChange(() => {
+    texture.needsUpdate = true;
+  });
