@@ -7,6 +7,10 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
 // 导入hdr加载器
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+// 导入gltf加载器
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+// 导入draco解码器
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
 // 创建场景
 const scene = new THREE.Scene();
@@ -69,16 +73,46 @@ window.addEventListener("resize", () => {
 // 创建GUI
 const gui = new GUI();
 
-// 创建长方体
-const boxGeometry = new THREE.BoxGeometry(1, 1, 100);
-const boxMaterial = new THREE.MeshBasicMaterial({
-  color: 0x00ff00,
-});
-const box = new THREE.Mesh(boxGeometry, boxMaterial);
-scene.add(box);
-
 // 创建场景fog
 scene.fog = new THREE.Fog(0x999999, 0.1, 50);
 // 创建场景指数fog
 // scene.fog = new THREE.FogExp2(0x999999, 0.1);
 scene.background = new THREE.Color(0x999999);
+
+// 实例化加载器gltf
+const gltfLoader = new GLTFLoader();
+// 加载模型
+gltfLoader.load(
+  // 模型路径
+  "./model/Duck.glb",
+  // 加载完成回调
+  (gltf) => {
+    console.log(gltf);
+    scene.add(gltf.scene);
+  }
+);
+
+// 实例化加载器draco
+const dracoLoader = new DRACOLoader();
+// 设置draco路径
+dracoLoader.setDecoderPath("./draco/");
+// 设置gltf加载器draco解码器
+gltfLoader.setDRACOLoader(dracoLoader);
+
+gltfLoader.load(
+  // 模型路径
+  "./model/city.glb",
+  // 加载完成回调
+  (gltf) => {
+    // console.log(gltf);
+    scene.add(gltf.scene);
+  }
+);
+
+// 加载环境贴图
+let rgbeLoader = new RGBELoader();
+rgbeLoader.load("./texture/Alex_Hart-Nature_Lab_Bones_2k.hdr", (envMap) => {
+  envMap.mapping = THREE.EquirectangularReflectionMapping;
+  // 设置环境贴图
+  scene.environment = envMap;
+});
