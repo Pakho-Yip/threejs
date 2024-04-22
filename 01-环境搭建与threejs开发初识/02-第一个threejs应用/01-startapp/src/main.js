@@ -5,6 +5,8 @@ import { DoubleSide } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 // 导入lil.gui
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
+// 导入hdr加载器
+import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 
 // 创建场景
 const scene = new THREE.Scene();
@@ -75,6 +77,31 @@ let texture = textureLoader.load(
 );
 // 加载ao贴图
 let aoMap = textureLoader.load("./texture/watercover/CityNewYork002_AO_1K.jpg");
+
+// 透明度贴图
+let alphaMap = textureLoader.load("./texture/door/height.jpg");
+
+// 光照贴图
+let lightMap = textureLoader.load("./texture/colors.png");
+
+// 高光贴图
+let specularMap = textureLoader.load(
+  "./texture/watercover/CityNewYork002_GLOSS_1K.jpg"
+);
+
+// rgbeLoader 加载hdr贴图
+let rgbeLoader = new RGBELoader();
+rgbeLoader.load("./texture/Alex_Hart-Nature_Lab_Bones_2k.hdr", (envMap) => {
+  // 设置球形贴图
+  envMap.mapping = THREE.EquirectangularReflectionMapping;
+  // 设置环境贴图
+  scene.background = envMap;
+  // 设置环境贴图
+  scene.environment = envMap;
+  // 设置plane的环境贴图
+  planeMaterial.envMap = envMap;
+});
+
 let planeGeometry = new THREE.PlaneGeometry(1, 1);
 let planeMaterial = new THREE.MeshBasicMaterial({
   color: 0xffffff,
@@ -83,6 +110,14 @@ let planeMaterial = new THREE.MeshBasicMaterial({
   transparent: true,
   // 设置ao贴图
   aoMap: aoMap,
+  aoMapIntensity: 1,
+  // 透明度贴图
+  // alphaMap: alphaMap,
+  // 设置光照贴图
+  // lightMap: lightMap,
+  // 设置高光贴图
+  specularMap: specularMap,
+  reflectivity: 0.5,
 });
 // planeMaterial.map = texture;
 let plane = new THREE.Mesh(planeGeometry, planeMaterial);
