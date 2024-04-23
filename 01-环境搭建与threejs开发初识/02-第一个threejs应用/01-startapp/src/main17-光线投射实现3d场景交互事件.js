@@ -11,8 +11,6 @@ import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 // 导入draco解码器
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-// 导入tween
-import * as TWEEN from "three/examples/jsm/libs/tween.module.js";
 
 // 创建场景
 const scene = new THREE.Scene();
@@ -59,8 +57,6 @@ function animation() {
   // cube.rotation.y += 0.01;
   // 渲染
   renderer.render(scene, camera);
-  // 更新tween
-  TWEEN.update();
 }
 animation();
 
@@ -87,44 +83,56 @@ const sphere1 = new THREE.Mesh(
 sphere1.position.x = -4;
 scene.add(sphere1);
 
-const tween = new TWEEN.Tween(sphere1.position);
-tween.to({ x: 4 }, 1000);
-tween.onUpdate(() => {
-  console.log(sphere1.position);
-});
-// 设置循环无数次
-// tween.repeat(Infinity);
-// tween.repeat(2);
-// 循环往复
-// tween.yoyo(true);
-// tween.delay(3000);
-// 设置缓动函数
-tween.easing(TWEEN.Easing.Quadratic.InOut);
+const sphere2 = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 32, 32),
+  new THREE.MeshBasicMaterial({
+    color: 0x0000ff,
+  })
+);
+scene.add(sphere2);
 
-let tween2 = new TWEEN.Tween(sphere1.position);
-tween2.to({ x: -4 }, 1000);
+const sphere3 = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 32, 32),
+  new THREE.MeshBasicMaterial({
+    color: 0xff00ff,
+  })
+);
+sphere3.position.x = 4;
+scene.add(sphere3);
 
-tween.chain(tween2);
-tween2.chain(tween);
+console.log(scene.children);
 
-// 启动补间动画
-tween.start();
-tween.onStart(() => {
-  console.log("开始");
-});
-tween.onComplete(() => {
-  console.log("结束");
-});
-tween.onStop(() => {
-  console.log("停止");
-});
-tween.onUpdate(() => {
-  console.log("更新");
-});
+// 创建射线
+const raycaster = new THREE.Raycaster();
+// 创建鼠标向量
+const mouse = new THREE.Vector2();
 
-let params = {
-  stop: function () {
-    tween.stop();
-  },
-};
-gui.add(params, "stop");
+window.addEventListener("click", (event) => {
+  console.log(event.clientX, event.clientY);
+  // 设置鼠标向量的x,y值
+  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -((event.clientY / window.innerHeight) * 2 - 1);
+
+  // console.log(mouse.x, mouse.y);
+  // 通过摄像机和鼠标位置更新射线
+  raycaster.setFromCamera(mouse, camera);
+
+  // 计算物体和射线的焦点
+  const intersects = raycaster.intersectObjects([sphere1, sphere2, sphere3]);
+
+  if (intersects.length > 0) {
+    // console.log(intersects[0].object);
+    if (intersects[0].object._isSelect) {
+      intersects[0].object.material.color.set(intersects[0].object._orginColor);
+      intersects[0].object._isSelect = false;
+      return;
+    }
+
+    intersects[0].object._isSelect = true;
+    intersects[0].object._orginColor =
+      intersects[0].object.material.color.getHex();
+    intersects[0].object.material.color.set(0xff0000);
+  }
+
+  console.log(intersects);
+});
