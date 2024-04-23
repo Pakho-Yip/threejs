@@ -29,7 +29,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // 设置相机位置
-camera.position.z = 15;
+camera.position.z = 5;
 camera.position.y = 2;
 camera.position.x = 2;
 camera.lookAt(0, 0, 0);
@@ -73,66 +73,46 @@ window.addEventListener("resize", () => {
 // 创建GUI
 const gui = new GUI();
 
-// 创建三个球
-const sphere1 = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 32, 32),
-  new THREE.MeshBasicMaterial({
-    color: 0x00ff00,
-  })
-);
-sphere1.position.x = -4;
-scene.add(sphere1);
+// 创建场景fog
+scene.fog = new THREE.Fog(0x999999, 0.1, 50);
+// 创建场景指数fog
+// scene.fog = new THREE.FogExp2(0x999999, 0.1);
+scene.background = new THREE.Color(0x999999);
 
-const sphere2 = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 32, 32),
-  new THREE.MeshBasicMaterial({
-    color: 0x0000ff,
-  })
-);
-scene.add(sphere2);
-
-const sphere3 = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 32, 32),
-  new THREE.MeshBasicMaterial({
-    color: 0xff00ff,
-  })
-);
-sphere3.position.x = 4;
-scene.add(sphere3);
-
-console.log(scene.children);
-
-// 创建射线
-const raycaster = new THREE.Raycaster();
-// 创建鼠标向量
-const mouse = new THREE.Vector2();
-
-window.addEventListener("click", (event) => {
-  console.log(event.clientX, event.clientY);
-  // 设置鼠标向量的x,y值
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -((event.clientY / window.innerHeight) * 2 - 1);
-
-  // console.log(mouse.x, mouse.y);
-  // 通过摄像机和鼠标位置更新射线
-  raycaster.setFromCamera(mouse, camera);
-
-  // 计算物体和射线的焦点
-  const intersects = raycaster.intersectObjects([sphere1, sphere2, sphere3]);
-
-  if (intersects.length > 0) {
-    // console.log(intersects[0].object);
-    if (intersects[0].object._isSelect) {
-      intersects[0].object.material.color.set(intersects[0].object._orginColor);
-      intersects[0].object._isSelect = false;
-      return;
-    }
-
-    intersects[0].object._isSelect = true;
-    intersects[0].object._orginColor =
-      intersects[0].object.material.color.getHex();
-    intersects[0].object.material.color.set(0xff0000);
+// 实例化加载器gltf
+const gltfLoader = new GLTFLoader();
+// 加载模型
+gltfLoader.load(
+  // 模型路径
+  "./model/Duck.glb",
+  // 加载完成回调
+  (gltf) => {
+    console.log(gltf);
+    scene.add(gltf.scene);
   }
+);
 
-  console.log(intersects);
+// 实例化加载器draco
+const dracoLoader = new DRACOLoader();
+// 设置draco路径
+dracoLoader.setDecoderPath("./draco/");
+// 设置gltf加载器draco解码器
+gltfLoader.setDRACOLoader(dracoLoader);
+
+gltfLoader.load(
+  // 模型路径
+  "./model/city.glb",
+  // 加载完成回调
+  (gltf) => {
+    // console.log(gltf);
+    scene.add(gltf.scene);
+  }
+);
+
+// 加载环境贴图
+let rgbeLoader = new RGBELoader();
+rgbeLoader.load("./texture/Alex_Hart-Nature_Lab_Bones_2k.hdr", (envMap) => {
+  envMap.mapping = THREE.EquirectangularReflectionMapping;
+  // 设置环境贴图
+  scene.environment = envMap;
 });
