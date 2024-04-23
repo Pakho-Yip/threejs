@@ -5,14 +5,6 @@ import { DoubleSide } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 // 导入lil.gui
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
-// 导入hdr加载器
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-// 导入gltf加载器
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-// 导入draco解码器
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
-// 导入tween
-import * as TWEEN from "three/examples/jsm/libs/tween.module.js";
 
 // 创建场景
 const scene = new THREE.Scene();
@@ -30,8 +22,64 @@ const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
+let uvTexture = new THREE.TextureLoader().load("./texture/uv_grid_opengl.jpg");
+
+// 创建平面几何体
+const planeGeometry = new THREE.PlaneGeometry(2, 2);
+console.log(planeGeometry);
+// 创建材质
+const planeMaterial = new THREE.MeshBasicMaterial({ map: uvTexture });
+// 创建平面
+const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
+// 添加到场景
+scene.add(planeMesh);
+planeMesh.position.x = -3;
+
+// 创建几何体
+const geometry = new THREE.BufferGeometry();
+// 创建顶点数据，顶点是有序的，每三个为一个顶点，逆时针为正面
+// const vertices = new Float32Array([
+//   -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, -1.0, 0.0, 1.0, 1.0,
+//   0.0, -1.0, 1.0, 0.0,
+// ]);
+// // 创建顶点属性
+// geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+
+// 使用索引绘制
+const vertices = new Float32Array([
+  -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0,
+]);
+// 创建顶点属性
+geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+// 创建索引
+const indices = new Uint16Array([0, 1, 2, 2, 3, 0]);
+// 创建索引属性
+geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+
+// 设置uv坐标
+const uv = new Float32Array([
+  0,
+  0,
+  1,
+  0,
+  1,
+  1,
+  0,
+  1, //正面
+]);
+// 创建uv属性
+geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+
+console.log(geometry);
+const material = new THREE.MeshBasicMaterial({
+  map: uvTexture,
+});
+const plane = new THREE.Mesh(geometry, material);
+scene.add(plane);
+plane.position.x = 3;
+
 // 设置相机位置
-camera.position.z = 15;
+camera.position.z = 5;
 camera.position.y = 2;
 camera.position.x = 2;
 camera.lookAt(0, 0, 0);
@@ -59,8 +107,6 @@ function animation() {
   // cube.rotation.y += 0.01;
   // 渲染
   renderer.render(scene, camera);
-  // 更新tween
-  TWEEN.update();
 }
 animation();
 
@@ -74,57 +120,21 @@ window.addEventListener("resize", () => {
   camera.updateProjectionMatrix();
 });
 
-// 创建GUI
-const gui = new GUI();
-
-// 创建三个球
-const sphere1 = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 32, 32),
-  new THREE.MeshBasicMaterial({
-    color: 0x00ff00,
-  })
-);
-sphere1.position.x = -4;
-scene.add(sphere1);
-
-const tween = new TWEEN.Tween(sphere1.position);
-tween.to({ x: 4 }, 1000);
-tween.onUpdate(() => {
-  console.log(sphere1.position);
-});
-// 设置循环无数次
-// tween.repeat(Infinity);
-// tween.repeat(2);
-// 循环往复
-// tween.yoyo(true);
-// tween.delay(3000);
-// 设置缓动函数
-tween.easing(TWEEN.Easing.Quadratic.InOut);
-
-let tween2 = new TWEEN.Tween(sphere1.position);
-tween2.to({ x: -4 }, 1000);
-
-tween.chain(tween2);
-tween2.chain(tween);
-
-// 启动补间动画
-tween.start();
-tween.onStart(() => {
-  console.log("开始");
-});
-tween.onComplete(() => {
-  console.log("结束");
-});
-tween.onStop(() => {
-  console.log("停止");
-});
-tween.onUpdate(() => {
-  console.log("更新");
-});
-
-let params = {
-  stop: function () {
-    tween.stop();
+let eventObj = {
+  fullScreen: function () {
+    document.body.requestFullscreen();
+    console.log("全屏");
+  },
+  exitFullScreen: function () {
+    document.exitFullscreen();
+    console.log("退出全屏");
   },
 };
-gui.add(params, "stop");
+
+// 创建GUI
+const gui = new GUI();
+// 添加按钮
+gui.add(eventObj, "fullScreen").name("全屏");
+gui.add(eventObj, "exitFullScreen").name("退出全屏");
+// 控制立方体的位置
+// gui.add(cube.position, "x", -5, 5).name("立方体x轴位置");
