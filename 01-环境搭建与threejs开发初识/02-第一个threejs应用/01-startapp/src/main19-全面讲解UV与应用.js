@@ -5,10 +5,6 @@ import { DoubleSide } from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 // 导入lil.gui
 import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
-// 导入hdr加载器
-import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-// 导入顶点法向量辅助器
-import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
 
 // 创建场景
 const scene = new THREE.Scene();
@@ -74,27 +70,6 @@ const uv = new Float32Array([
 // 创建uv属性
 geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
 
-// 设置法向量
-const normals = new Float32Array([
-  0,
-  0,
-  1,
-  0,
-  0,
-  1,
-  0,
-  0,
-  1,
-  0,
-  0,
-  1, // 正面
-]);
-// 创建法向量属性
-geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
-
-// 计算出法向量
-// geometry.computeVertexNormals();
-
 console.log(geometry);
 const material = new THREE.MeshBasicMaterial({
   map: uvTexture,
@@ -102,10 +77,6 @@ const material = new THREE.MeshBasicMaterial({
 const plane = new THREE.Mesh(geometry, material);
 scene.add(plane);
 plane.position.x = 3;
-
-// 创建法向量辅助器
-const helper = new VertexNormalsHelper(plane, 0.2, 0xff0000);
-scene.add(helper);
 
 // 设置相机位置
 camera.position.z = 5;
@@ -167,18 +138,3 @@ gui.add(eventObj, "fullScreen").name("全屏");
 gui.add(eventObj, "exitFullScreen").name("退出全屏");
 // 控制立方体的位置
 // gui.add(cube.position, "x", -5, 5).name("立方体x轴位置");
-
-// rgbeLoader 加载hdr贴图
-let rgbeLoader = new RGBELoader();
-rgbeLoader.load("./texture/Alex_Hart-Nature_Lab_Bones_2k.hdr", (envMap) => {
-  // 设置球形贴图
-  envMap.mapping = THREE.EquirectangularReflectionMapping;
-  // 设置环境贴图
-  scene.background = envMap;
-  // 设置环境贴图
-  scene.environment = envMap;
-  // 设置plane的环境贴图
-  planeMaterial.envMap = envMap;
-  // 设置plane的环境贴图
-  material.envMap = envMap;
-});
