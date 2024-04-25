@@ -119,17 +119,36 @@ gltfLoader.load(
     let duckGeometry = duckMesh.geometry;
     // 计算包围盒
     duckGeometry.computeBoundingBox();
+    // 设置几何体居中
+    // duckGeometry.center();
     // 获取duck包围盒
     let duckBox = duckGeometry.boundingBox;
     // 更新世界矩阵
     duckMesh.updateWorldMatrix(true, true);
     // 更新包围盒
     duckBox.applyMatrix4(duckMesh.matrixWorld);
+    // 获取包围盒中心点
+    let center = duckBox.getCenter(new THREE.Vector3());
+    console.log(center);
     // 创建包围盒辅助器
     let boxHelper = new THREE.Box3Helper(duckBox, 0xffff00);
     // 添加包围盒辅助器
     scene.add(boxHelper);
     console.log(duckBox);
     console.log(duckMesh);
+
+    // 获取包围球
+    let duckSphere = duckGeometry.boundingSphere;
+    duckSphere.applyMatrix4(duckMesh.matrixWorld);
+    console.log(duckSphere);
+    // 创建包围球辅助器
+    let sphereGeometry = new THREE.SphereGeometry(duckSphere.radius, 16, 16);
+    let sphereMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      wireframe: true,
+    });
+    let sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    sphereMesh.position.copy(duckSphere.center);
+    scene.add(sphereMesh);
   }
 );
