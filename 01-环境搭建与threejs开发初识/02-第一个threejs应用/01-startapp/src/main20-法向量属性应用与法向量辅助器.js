@@ -51,8 +51,7 @@ const geometry = new THREE.BufferGeometry();
 
 // 使用索引绘制
 const vertices = new Float32Array([
-  // -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0,
-  3.0, -1.0, 0.0, 5.0, -1.0, 0.0, 5.0, 1.0, 0.0, 3.0, 1.0, 0.0,
+  -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0,
 ]);
 // 创建顶点属性
 geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
@@ -95,19 +94,14 @@ geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
 
 // 计算出法向量
 // geometry.computeVertexNormals();
-geometry.translate(-4, 0, 0);
-geometry.rotateX(Math.PI / 2);
-geometry.scale(3, 3, 3);
 
 console.log(geometry);
 const material = new THREE.MeshBasicMaterial({
   map: uvTexture,
-  side: THREE.DoubleSide,
 });
 const plane = new THREE.Mesh(geometry, material);
 scene.add(plane);
-// plane.position.x = 3;
-console.log(plane);
+plane.position.x = 3;
 
 // 创建法向量辅助器
 const helper = new VertexNormalsHelper(plane, 0.2, 0xff0000);
