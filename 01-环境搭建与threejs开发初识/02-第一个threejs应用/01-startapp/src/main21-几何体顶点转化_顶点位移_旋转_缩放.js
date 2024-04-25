@@ -9,8 +9,6 @@ import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 // 导入顶点法向量辅助器
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
-// 导入gltf加载器
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 // 创建场景
 const scene = new THREE.Scene();
@@ -27,6 +25,93 @@ const camera = new THREE.PerspectiveCamera(
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
+
+let uvTexture = new THREE.TextureLoader().load("./texture/uv_grid_opengl.jpg");
+
+// 创建平面几何体
+const planeGeometry = new THREE.PlaneGeometry(2, 2);
+console.log(planeGeometry);
+// 创建材质
+const planeMaterial = new THREE.MeshBasicMaterial({ map: uvTexture });
+// 创建平面
+const planeMesh = new THREE.Mesh(planeGeometry, planeMaterial);
+// 添加到场景
+scene.add(planeMesh);
+planeMesh.position.x = -3;
+
+// 创建几何体
+const geometry = new THREE.BufferGeometry();
+// 创建顶点数据，顶点是有序的，每三个为一个顶点，逆时针为正面
+// const vertices = new Float32Array([
+//   -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, -1.0, 0.0, 1.0, 1.0,
+//   0.0, -1.0, 1.0, 0.0,
+// ]);
+// // 创建顶点属性
+// geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+
+// 使用索引绘制
+const vertices = new Float32Array([
+  // -1.0, -1.0, 0.0, 1.0, -1.0, 0.0, 1.0, 1.0, 0.0, -1.0, 1.0, 0.0,
+  3.0, -1.0, 0.0, 5.0, -1.0, 0.0, 5.0, 1.0, 0.0, 3.0, 1.0, 0.0,
+]);
+// 创建顶点属性
+geometry.setAttribute("position", new THREE.BufferAttribute(vertices, 3));
+// 创建索引
+const indices = new Uint16Array([0, 1, 2, 2, 3, 0]);
+// 创建索引属性
+geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+
+// 设置uv坐标
+const uv = new Float32Array([
+  0,
+  0,
+  1,
+  0,
+  1,
+  1,
+  0,
+  1, //正面
+]);
+// 创建uv属性
+geometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
+
+// 设置法向量
+const normals = new Float32Array([
+  0,
+  0,
+  1,
+  0,
+  0,
+  1,
+  0,
+  0,
+  1,
+  0,
+  0,
+  1, // 正面
+]);
+// 创建法向量属性
+geometry.setAttribute("normal", new THREE.BufferAttribute(normals, 3));
+
+// 计算出法向量
+// geometry.computeVertexNormals();
+geometry.translate(-4, 0, 0);
+geometry.rotateX(Math.PI / 2);
+geometry.scale(3, 3, 3);
+
+console.log(geometry);
+const material = new THREE.MeshBasicMaterial({
+  map: uvTexture,
+  side: THREE.DoubleSide,
+});
+const plane = new THREE.Mesh(geometry, material);
+scene.add(plane);
+// plane.position.x = 3;
+console.log(plane);
+
+// 创建法向量辅助器
+const helper = new VertexNormalsHelper(plane, 0.2, 0xff0000);
+scene.add(helper);
 
 // 设置相机位置
 camera.position.z = 5;
@@ -99,37 +184,7 @@ rgbeLoader.load("./texture/Alex_Hart-Nature_Lab_Bones_2k.hdr", (envMap) => {
   // 设置环境贴图
   scene.environment = envMap;
   // 设置plane的环境贴图
-  // planeMaterial.envMap = envMap;
+  planeMaterial.envMap = envMap;
   // 设置plane的环境贴图
-  // material.envMap = envMap;
+  material.envMap = envMap;
 });
-
-// 实例化加载器gltf
-const gltfLoader = new GLTFLoader();
-// 加载模型
-gltfLoader.load(
-  // 模型路径
-  "./model/Duck.glb",
-  // 加载完成回调
-  (gltf) => {
-    console.log(gltf);
-    scene.add(gltf.scene);
-
-    let duckMesh = gltf.scene.getObjectByName("LOD3spShape");
-    let duckGeometry = duckMesh.geometry;
-    // 计算包围盒
-    duckGeometry.computeBoundingBox();
-    // 获取duck包围盒
-    let duckBox = duckGeometry.boundingBox;
-    // 更新世界矩阵
-    duckMesh.updateWorldMatrix(true, true);
-    // 更新包围盒
-    duckBox.applyMatrix4(duckMesh.matrixWorld);
-    // 创建包围盒辅助器
-    let boxHelper = new THREE.Box3Helper(duckBox, 0xffff00);
-    // 添加包围盒辅助器
-    scene.add(boxHelper);
-    console.log(duckBox);
-    console.log(duckMesh);
-  }
-);
