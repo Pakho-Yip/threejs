@@ -89,52 +89,66 @@ gui.add(eventObj, "exitFullScreen").name("退出全屏");
 // 控制立方体的位置
 // gui.add(cube.position, "x", -5, 5).name("立方体x轴位置");
 
-// 创建三个球
-const sphere1 = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 32, 32),
-  new THREE.MeshBasicMaterial({
-    color: 0x00ff00,
-  })
+// rgbeLoader 加载hdr贴图
+let rgbeLoader = new RGBELoader();
+rgbeLoader.load("./texture/Alex_Hart-Nature_Lab_Bones_2k.hdr", (envMap) => {
+  // 设置球形贴图
+  envMap.mapping = THREE.EquirectangularReflectionMapping;
+  // 设置环境贴图
+  scene.background = envMap;
+  // 设置环境贴图
+  scene.environment = envMap;
+  // 设置plane的环境贴图
+  // planeMaterial.envMap = envMap;
+  // 设置plane的环境贴图
+  // material.envMap = envMap;
+});
+
+// 实例化加载器gltf
+const gltfLoader = new GLTFLoader();
+// 加载模型
+gltfLoader.load(
+  // 模型路径
+  "./model/Duck.glb",
+  // 加载完成回调
+  (gltf) => {
+    console.log(gltf);
+    scene.add(gltf.scene);
+
+    let duckMesh = gltf.scene.getObjectByName("LOD3spShape");
+    let duckGeometry = duckMesh.geometry;
+    // 计算包围盒
+    duckGeometry.computeBoundingBox();
+    // 设置几何体居中
+    // duckGeometry.center();
+    // 获取duck包围盒
+    let duckBox = duckGeometry.boundingBox;
+    // 更新世界矩阵
+    duckMesh.updateWorldMatrix(true, true);
+    // 更新包围盒
+    duckBox.applyMatrix4(duckMesh.matrixWorld);
+    // 获取包围盒中心点
+    let center = duckBox.getCenter(new THREE.Vector3());
+    console.log(center);
+    // 创建包围盒辅助器
+    let boxHelper = new THREE.Box3Helper(duckBox, 0xffff00);
+    // 添加包围盒辅助器
+    scene.add(boxHelper);
+    console.log(duckBox);
+    console.log(duckMesh);
+
+    // 获取包围球
+    let duckSphere = duckGeometry.boundingSphere;
+    duckSphere.applyMatrix4(duckMesh.matrixWorld);
+    console.log(duckSphere);
+    // 创建包围球辅助器
+    let sphereGeometry = new THREE.SphereGeometry(duckSphere.radius, 16, 16);
+    let sphereMaterial = new THREE.MeshBasicMaterial({
+      color: 0xff0000,
+      wireframe: true,
+    });
+    let sphereMesh = new THREE.Mesh(sphereGeometry, sphereMaterial);
+    sphereMesh.position.copy(duckSphere.center);
+    scene.add(sphereMesh);
+  }
 );
-sphere1.position.x = -4;
-scene.add(sphere1);
-
-const sphere2 = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 32, 32),
-  new THREE.MeshBasicMaterial({
-    color: 0x0000ff,
-  })
-);
-scene.add(sphere2);
-
-const sphere3 = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 32, 32),
-  new THREE.MeshBasicMaterial({
-    color: 0xff00ff,
-  })
-);
-sphere3.position.x = 4;
-scene.add(sphere3);
-
-var box = new THREE.Box3();
-let arrSphere = [sphere1, sphere2, sphere3];
-for (let i = 0; i < arrSphere.length; i++) {
-  // 第一种方式
-  // // console.log(scene.add.children[i].name);
-  // // 获取当前物体的包围盒
-  // arrSphere[i].geometry.computeBoundingBox();
-  // // 获取包围盒
-  // let box3 = arrSphere[i].geometry.boundingBox;
-  // arrSphere[i].updateWorldMatrix(true, true);
-  // // 将包围盒转换到世界坐标系
-  // box3.applyMatrix4(arrSphere[i].matrixWorld);
-
-  // 第二种方式
-  let box3 = new THREE.Box3().setFromObject(arrSphere[i]);
-  // 合并包围盒
-  box.union(box3);
-}
-console.log(box);
-// 创建包围盒辅助器
-let boxHelper = new THREE.Box3Helper(box, 0xffff00);
-scene.add(boxHelper);
