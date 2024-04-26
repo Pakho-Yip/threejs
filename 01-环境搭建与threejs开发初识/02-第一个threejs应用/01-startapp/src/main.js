@@ -2,6 +2,7 @@
 import * as THREE from "three";
 // 导入轨道控制器
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import GUI from "three/examples/jsm/libs/lil-gui.module.min";
 // 导入动画库
 // import gsap from "gsap";
 // 导入dat.gui
@@ -54,7 +55,32 @@ scene.add(light);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
 directionalLight.position.set(10, 10, 10);
 directionalLight.castShadow = true;
+
+// 设置阴影贴图模糊度
+directionalLight.shadow.radius = 20;
+// 设置阴影贴图的分辨率
+directionalLight.shadow.mapSize.set(4096, 4096);
+// console.log(directionalLight.shadow);
+
+// 设置平行光投射相机的属性
+directionalLight.shadow.camera.near = 0.5;
+directionalLight.shadow.camera.far = 500;
+directionalLight.shadow.camera.top = 5;
+directionalLight.shadow.camera.bottom = -5;
+directionalLight.shadow.camera.left = -5;
+directionalLight.shadow.camera.right = 5;
+
 scene.add(directionalLight);
+// 创建GUI
+const gui = new GUI();
+gui
+  .add(directionalLight.shadow.camera, "near")
+  .min(0)
+  .max(100)
+  .step(0.1)
+  .onChange(() => {
+    directionalLight.shadow.camera.updateProjectionMatrix();
+  });
 
 // 初始化渲染器
 const renderer = new THREE.WebGLRenderer();
