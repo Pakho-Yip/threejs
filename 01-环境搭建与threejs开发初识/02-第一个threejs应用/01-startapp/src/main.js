@@ -1,40 +1,69 @@
 // 导入threejs
 import * as THREE from "three";
-import { DoubleSide } from "three";
 // 导入轨道控制器
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-// 导入lil.gui
-import { GUI } from "three/examples/jsm/libs/lil-gui.module.min.js";
+// 导入动画库
+// import gsap from "gsap";
+// 导入dat.gui
+// import * as dat from "dat.gui";
 // 导入hdr加载器
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-// 导入顶点法向量辅助器
-import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
-// 导入gltf加载器
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-// 导入draco解码器
-import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
+// 目标：灯光与阴影
+// 灯光阴影
+// 1、材质要满足能够对光照有反应
+// 2、设置渲染器开启阴影的计算 renderer.shadowMap.enabled = true;
+// 3、设置光照投射阴影 directionalLight.castShadow = true;
+// 4、设置物体投射阴影 sphere.castShadow = true;
+// 5、设置物体接收阴影 plane.receiveShadow = true;
 
 // 创建场景
 const scene = new THREE.Scene();
 
 // 创建相机
 const camera = new THREE.PerspectiveCamera(
-  45, // 视角
+  75, // 视角
   window.innerWidth / window.innerHeight, // 宽高比
-  0.01, // 近平面
+  0.1, // 近平面
   1000 // 远平面
 );
 
-// 创建渲染器
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement);
-
 // 设置相机位置
-camera.position.z = 5;
-camera.position.y = 2;
-camera.position.x = 2;
-camera.lookAt(0, 0, 0);
+camera.position.set(0, 0, 10);
+scene.add(camera);
+
+const sphereGeometry = new THREE.SphereGeometry(1, 20, 20);
+const material = new THREE.MeshStandardMaterial();
+const sphere = new THREE.Mesh(sphereGeometry, material);
+// 投射阴影
+sphere.castShadow = true;
+scene.add(sphere);
+
+// 创建平面
+const planGeometry = new THREE.PlaneGeometry(10, 10);
+const plane = new THREE.Mesh(planGeometry, material);
+plane.position.set(0, -1, 0);
+plane.rotation.x = -Math.PI / 2;
+// 接收阴影
+plane.receiveShadow = true;
+scene.add(plane);
+// 灯光
+// 环境光
+const light = new THREE.AmbientLight(0xffffff, 1.0);
+scene.add(light);
+// 直线光源
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
+directionalLight.position.set(10, 10, 10);
+directionalLight.castShadow = true;
+scene.add(directionalLight);
+
+// 初始化渲染器
+const renderer = new THREE.WebGLRenderer();
+// 设置渲染的尺寸大小
+renderer.setSize(window.innerWidth, window.innerHeight);
+// 开启场景中的阴影贴图
+renderer.shadowMap.enabled = true;
+// 将webgl渲染的canvas内容添加到body
+document.body.appendChild(renderer.domElement);
 
 // 添加世界坐标辅助器
 const axesHelper = new THREE.AxesHelper(5);
@@ -71,113 +100,3 @@ window.addEventListener("resize", () => {
   // 更新相机投影矩阵
   camera.updateProjectionMatrix();
 });
-
-let eventObj = {
-  fullScreen: function () {
-    document.body.requestFullscreen();
-    console.log("全屏");
-  },
-  exitFullScreen: function () {
-    document.exitFullscreen();
-    console.log("退出全屏");
-  },
-};
-
-// 创建GUI
-const gui = new GUI();
-// 添加按钮
-gui.add(eventObj, "fullScreen").name("全屏");
-gui.add(eventObj, "exitFullScreen").name("退出全屏");
-// 控制立方体的位置
-// gui.add(cube.position, "x", -5, 5).name("立方体x轴位置");
-
-// 加载环境贴图
-let rgbeLoader = new RGBELoader();
-rgbeLoader.load("./texture/Alex_Hart-Nature_Lab_Bones_2k.hdr", (envMap) => {
-  envMap.mapping = THREE.EquirectangularReflectionMapping;
-  // 设置环境贴图
-  // scene.background = envMap;
-  // 设置环境贴图
-  scene.environment = envMap;
-});
-
-// 实例化加载器draco
-const dracoLoader = new DRACOLoader();
-// 设置draco路径
-dracoLoader.setDecoderPath("./draco/");
-// 实例化加载器gltf
-const gltfLoader = new GLTFLoader();
-// 设置gltf加载器draco解码器
-gltfLoader.setDRACOLoader(dracoLoader);
-
-// 加载模型
-// gltfLoader.load(
-//   // 模型路径
-//   "./model/building.glb",
-//   // 加载完成回调
-//   (gltf) => {
-//     // console.log(gltf);
-//     // scene.add(gltf.scene);
-//     let building = gltf.scene.children[0];
-//     let geometry = building.geometry;
-
-//     // 获取边缘geometry
-//     let edgesGeometry = new THREE.EdgesGeometry(geometry);
-//     // 创建线段材质
-//     let edgesMaterial = new THREE.LineBasicMaterial({
-//       color: 0xffffff,
-//     });
-
-//     // 线框geometry
-//     // let edgesGeometry = new THREE.WireframeGeometry(geometry);
-
-//     // 创建线段
-//     let edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
-
-//     // 更新建筑物世界转换矩阵
-//     building.updateWorldMatrix(true, true);
-//     edges.matrix.copy(building.matrixWorld);
-//     edges.matrix.decompose(edges.position, edges.quaternion, edges.scale);
-
-//     // 添加到场景
-//     scene.add(edges);
-//   }
-// );
-
-gltfLoader.load(
-  // 模型路径
-  "./model/city.glb",
-  // 加载完成回调
-  (gltf) => {
-    // console.log(gltf);
-    // scene.add(gltf.scene);
-
-    gltf.scene.traverse((child) => {
-      if (child.isMesh) {
-        let building = child;
-        let geometry = building.geometry;
-
-        // 获取边缘geometry
-        let edgesGeometry = new THREE.EdgesGeometry(geometry);
-        // 创建线段材质
-        let edgesMaterial = new THREE.LineBasicMaterial({
-          color: 0xffffff,
-        });
-
-        // 线框geometry
-        // let edgesGeometry = new THREE.WireframeGeometry(geometry);
-
-        // 创建线段
-        let edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
-
-        // 更新建筑物世界转换矩阵
-        building.updateWorldMatrix(true, true);
-        edges.matrix.copy(building.matrixWorld);
-        edges.matrix.decompose(edges.position, edges.quaternion, edges.scale);
-
-        // 添加到场景
-        scene.add(edges);
-      }
-    });
-  }
-);
