@@ -11,6 +11,8 @@ import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { VertexNormalsHelper } from "three/examples/jsm/helpers/VertexNormalsHelper.js";
 // 导入gltf加载器
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+// 导入draco解码器
+import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 
 // 创建场景
 const scene = new THREE.Scene();
@@ -89,52 +91,93 @@ gui.add(eventObj, "exitFullScreen").name("退出全屏");
 // 控制立方体的位置
 // gui.add(cube.position, "x", -5, 5).name("立方体x轴位置");
 
-// 创建三个球
-const sphere1 = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 32, 32),
-  new THREE.MeshBasicMaterial({
-    color: 0x00ff00,
-  })
+// 加载环境贴图
+let rgbeLoader = new RGBELoader();
+rgbeLoader.load("./texture/Alex_Hart-Nature_Lab_Bones_2k.hdr", (envMap) => {
+  envMap.mapping = THREE.EquirectangularReflectionMapping;
+  // 设置环境贴图
+  // scene.background = envMap;
+  // 设置环境贴图
+  scene.environment = envMap;
+});
+
+// 实例化加载器draco
+const dracoLoader = new DRACOLoader();
+// 设置draco路径
+dracoLoader.setDecoderPath("./draco/");
+// 实例化加载器gltf
+const gltfLoader = new GLTFLoader();
+// 设置gltf加载器draco解码器
+gltfLoader.setDRACOLoader(dracoLoader);
+
+// 加载模型
+// gltfLoader.load(
+//   // 模型路径
+//   "./model/building.glb",
+//   // 加载完成回调
+//   (gltf) => {
+//     // console.log(gltf);
+//     // scene.add(gltf.scene);
+//     let building = gltf.scene.children[0];
+//     let geometry = building.geometry;
+
+//     // 获取边缘geometry
+//     let edgesGeometry = new THREE.EdgesGeometry(geometry);
+//     // 创建线段材质
+//     let edgesMaterial = new THREE.LineBasicMaterial({
+//       color: 0xffffff,
+//     });
+
+//     // 线框geometry
+//     // let edgesGeometry = new THREE.WireframeGeometry(geometry);
+
+//     // 创建线段
+//     let edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+
+//     // 更新建筑物世界转换矩阵
+//     building.updateWorldMatrix(true, true);
+//     edges.matrix.copy(building.matrixWorld);
+//     edges.matrix.decompose(edges.position, edges.quaternion, edges.scale);
+
+//     // 添加到场景
+//     scene.add(edges);
+//   }
+// );
+
+gltfLoader.load(
+  // 模型路径
+  "./model/city.glb",
+  // 加载完成回调
+  (gltf) => {
+    // console.log(gltf);
+    // scene.add(gltf.scene);
+
+    gltf.scene.traverse((child) => {
+      if (child.isMesh) {
+        let building = child;
+        let geometry = building.geometry;
+
+        // 获取边缘geometry
+        let edgesGeometry = new THREE.EdgesGeometry(geometry);
+        // 创建线段材质
+        let edgesMaterial = new THREE.LineBasicMaterial({
+          color: 0xffffff,
+        });
+
+        // 线框geometry
+        // let edgesGeometry = new THREE.WireframeGeometry(geometry);
+
+        // 创建线段
+        let edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+
+        // 更新建筑物世界转换矩阵
+        building.updateWorldMatrix(true, true);
+        edges.matrix.copy(building.matrixWorld);
+        edges.matrix.decompose(edges.position, edges.quaternion, edges.scale);
+
+        // 添加到场景
+        scene.add(edges);
+      }
+    });
+  }
 );
-sphere1.position.x = -4;
-scene.add(sphere1);
-
-const sphere2 = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 32, 32),
-  new THREE.MeshBasicMaterial({
-    color: 0x0000ff,
-  })
-);
-scene.add(sphere2);
-
-const sphere3 = new THREE.Mesh(
-  new THREE.SphereGeometry(1, 32, 32),
-  new THREE.MeshBasicMaterial({
-    color: 0xff00ff,
-  })
-);
-sphere3.position.x = 4;
-scene.add(sphere3);
-
-var box = new THREE.Box3();
-let arrSphere = [sphere1, sphere2, sphere3];
-for (let i = 0; i < arrSphere.length; i++) {
-  // 第一种方式
-  // // console.log(scene.add.children[i].name);
-  // // 获取当前物体的包围盒
-  // arrSphere[i].geometry.computeBoundingBox();
-  // // 获取包围盒
-  // let box3 = arrSphere[i].geometry.boundingBox;
-  // arrSphere[i].updateWorldMatrix(true, true);
-  // // 将包围盒转换到世界坐标系
-  // box3.applyMatrix4(arrSphere[i].matrixWorld);
-
-  // 第二种方式
-  let box3 = new THREE.Box3().setFromObject(arrSphere[i]);
-  // 合并包围盒
-  box.union(box3);
-}
-console.log(box);
-// 创建包围盒辅助器
-let boxHelper = new THREE.Box3Helper(box, 0xffff00);
-scene.add(boxHelper);
