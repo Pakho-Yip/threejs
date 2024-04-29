@@ -9,7 +9,7 @@ import GUI from "three/examples/jsm/libs/lil-gui.module.min";
 // import * as dat from "dat.gui";
 // 导入hdr加载器
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
-// 目标：点光源
+// 目标：聚光灯
 
 // 创建场景
 const scene = new THREE.Scene();
@@ -45,32 +45,37 @@ scene.add(plane);
 // 环境光
 const light = new THREE.AmbientLight(0xffffff, 0.5);
 scene.add(light);
-
-const smallBall = new THREE.Mesh(
-  new THREE.SphereGeometry(0.1, 20, 20),
-  new THREE.MeshBasicMaterial({ color: 0xff0000 })
-);
-smallBall.position.set(2, 2, 2);
-
 // 直线光源
-const pointLight = new THREE.PointLight(0xff0000, 1.0);
-// pointLight.position.set(2, 2, 2);
-pointLight.castShadow = true;
+const spotLight = new THREE.SpotLight(0xffffff, 1.0);
+spotLight.position.set(10, 10, 10);
+spotLight.castShadow = true;
+spotLight.intensity = 2; // 设置聚光灯强度
 
 // 设置阴影贴图模糊度
-pointLight.shadow.radius = 20;
+spotLight.shadow.radius = 20;
 // 设置阴影贴图的分辨率
-pointLight.shadow.mapSize.set(4096, 4096);
+spotLight.shadow.mapSize.set(4096, 4096);
+// console.log(directionalLight.shadow);
+spotLight.target = sphere;
+spotLight.angle = Math.PI / 6; // 设置聚光灯的角度
+spotLight.distance = 0; // 设置聚光灯的距离
+spotLight.penumbra = 0; // 设置聚光灯的边缘
+spotLight.decay = 0; // 设置聚光灯的衰减
 
 // 设置透视相机的属性
-smallBall.add(pointLight);
 
-scene.add(smallBall);
+scene.add(spotLight);
 // 创建GUI
 const gui = new GUI();
-gui.add(pointLight.position, "x").min(-5).max(5).step(0.1);
-gui.add(pointLight, "distance").min(0).max(5).step(0.001);
-gui.add(pointLight, "decay").min(0).max(5).step(0.01);
+gui.add(sphere.position, "x").min(-5).max(5).step(0.1);
+gui
+  .add(spotLight, "angle")
+  .min(0)
+  .max(Math.PI / 2)
+  .step(0.1);
+gui.add(spotLight, "distance").min(0).max(10).step(0.01);
+gui.add(spotLight, "penumbra").min(0).max(1).step(0.01);
+gui.add(spotLight, "decay").min(0).max(5).step(0.01);
 
 // 初始化渲染器
 const renderer = new THREE.WebGLRenderer();
@@ -82,6 +87,10 @@ renderer.physicallyCorrectLights = true;
 // 将webgl渲染的canvas内容添加到body
 document.body.appendChild(renderer.domElement);
 
+// 添加世界坐标辅助器
+const axesHelper = new THREE.AxesHelper(5);
+scene.add(axesHelper);
+
 // 添加轨道控制器
 // const controls = new OrbitControls(camera, document.body);
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -92,37 +101,17 @@ controls.dampingFactor = 0.05;
 // 设置旋转速度
 // controls.autoRotate = true;
 
-// 添加世界坐标辅助器
-const axesHelper = new THREE.AxesHelper(5);
-scene.add(axesHelper);
-// 设置时钟
-const clock = new THREE.Clock();
-
-function render() {
-  let time = clock.getElapsedTime();
-  smallBall.position.x = Math.sin(time) * 3;
-  smallBall.position.z = Math.cos(time) * 3;
-  smallBall.position.y = 2 + Math.sin(time * 10) / 2;
-
-  controls.update();
-  renderer.render(scene, camera);
-  // 渲染下一帧的时候就会调用render函数
-  requestAnimationFrame(render);
-}
-
-render();
-
 // 渲染函数
-// function animation() {
-//   controls.update();
-//   requestAnimationFrame(animation);
-//   // 旋转
-//   // cube.rotation.x += 0.01;
-//   // cube.rotation.y += 0.01;
-//   // 渲染
-//   renderer.render(scene, camera);
-// }
-// animation();
+function animation() {
+  controls.update();
+  requestAnimationFrame(animation);
+  // 旋转
+  // cube.rotation.x += 0.01;
+  // cube.rotation.y += 0.01;
+  // 渲染
+  renderer.render(scene, camera);
+}
+animation();
 
 // 监听窗口变化
 window.addEventListener("resize", () => {
