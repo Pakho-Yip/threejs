@@ -9,7 +9,7 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
 import { Water } from "three/examples/jsm/objects/Water2.js";
-import gasp from "gsap";
+import gsap from "gsap";
 
 // 初始化场景
 const scene = new THREE.Scene();
@@ -33,6 +33,8 @@ document.body.appendChild(renderer.domElement);
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.5;
+renderer.shadowMap.enabled = true;
+renderer.physicallyCorrectLights = true;
 
 // 初始化控制器
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -59,8 +61,12 @@ gltfLoader.load("./model/scene.glb", (gltf) => {
     if (child.name === "Plane") {
       child.visible = false;
     }
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
   });
-  model.scale.set(0.1, 0.1, 0.1);
+  // model.scale.set(0.1, 0.1, 0.1);
   scene.add(model);
 });
 
@@ -81,6 +87,61 @@ scene.add(water);
 const light = new THREE.DirectionalLight(0xffffff, 1);
 light.position.set(0, 50, 0);
 scene.add(light);
+
+// 添加点光源
+const pointLight = new THREE.PointLight(0xffffff, 50);
+pointLight.position.set(0.1, 2.4, 0);
+pointLight.castShadow = true;
+scene.add(pointLight);
+
+// 创建点光源组
+const pointLightGroup = new THREE.Group();
+pointLightGroup.position.set(-8, 2.5, -1.5);
+let radius = 3;
+let pointLightArr = [];
+for (let i = 0; i < 3; i++) {
+  // 创建球体当灯泡
+  const sphereGeometry = new THREE.SphereGeometry(0.2, 32, 32);
+  const sphereMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    emissive: 0xffffff,
+    emissiveIntensity: 10,
+  });
+  const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+  pointLightArr.push(sphere);
+  sphere.position.set(
+    radius * Math.cos((i * 2 * Math.PI) / 3),
+    Math.cos((i * 2 * Math.PI) / 3),
+    radius * Math.sin((i * 2 * Math.PI) / 3)
+  );
+
+  let pointLight = new THREE.PointLight(0xffffff, 50);
+  sphere.add(pointLight);
+
+  pointLightGroup.add(sphere);
+}
+scene.add(pointLightGroup);
+
+// 使用补间函数，从0到2π，使灯泡旋转
+let options = {
+  angle: 0,
+};
+gsap.to(options, {
+  angle: Math.PI * 2,
+  duration: 10,
+  repeat: -1,
+  ease: "linear",
+  onUpdate: () => {
+    pointLightGroup.rotation.y = options.angle;
+    pointLightArr.forEach((item, index) => {
+      item.position.set(
+        radius * Math.cos((index * 2 * Math.PI) / 3),
+        Math.cos((index * 2 * Math.PI) / 3 + options.angle * 5),
+        radius * Math.sin((index * 2 * Math.PI) / 3)
+      );
+    });
+  },
+});
 
 function render() {
   requestAnimationFrame(render);
